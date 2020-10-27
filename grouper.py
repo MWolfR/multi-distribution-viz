@@ -25,8 +25,10 @@ class DistributionGrouper(object):
     def values_across(self, parameter, category, **kwargs):
         assert category in self._filter_categories
         filtered = self.activate_column(parameter).filter(**kwargs)
-        return [(val, numpy.hstack(filtered.get(**dict([(category, val)]))))
-                for val in filtered.labels_of(category)]
+        if len(filtered.contents):
+            return [(val, numpy.hstack(filtered.get(**dict([(category, val)]))))
+                    for val in filtered.labels_of(category)]
+        return []
 
     def violins_for(self, parameter, lst_filter_values, main_category, comparator=None):
         fltr_dict = dict([(category, values)
@@ -34,7 +36,7 @@ class DistributionGrouper(object):
                                                       lst_filter_values)
                           if len(values)])
         if comparator is not None:
-            fltr_dict[comparator[0]] = comparator[1][0]
+            fltr_dict[comparator[0]] = comparator[1][0]  # TODO: Overrides specified filter. Is that desired?
             values = self.values_across(parameter, main_category, **fltr_dict)
             violins = [go.Violin(x0=k, y=v, name=comparator[1][0],
                                  side='negative', line={"color": 'blue'},
